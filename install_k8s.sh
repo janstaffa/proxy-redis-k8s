@@ -3,6 +3,16 @@
 # - https://kubernetes.io/docs/setup/production-environment/container-runtimes/
 # - https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
 
+sudo swapoff -a
+
+cat <<EOF | sudo tee /etc/modules-load.d/containerd.conf 
+overlay 
+br_netfilter
+EOF
+
+sudo modprobe overlay 
+sudo modprobe br_netfilter
+
 # sysctl params required by setup, params persist across reboots
 cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
 net.ipv4.ip_forward = 1
@@ -51,5 +61,13 @@ sudo apt-mark hold kubelet kubeadm kubectl
 sudo systemctl enable --now kubelet
 
 
-# Install Flannel networking
-kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
+# Generate default containerd config
+sudo containerd config default | sudo tee /etc/containerd/config.toml
+
+# Edit /etc/containerd
+sudo sed -i 's|SystemdCgroup = false|SystemdCgroup = true|' /etc/containerd/config.toml
+sudo sed -i 's|bin_dir = "/usr/lib/cni"|bin_dir = "/opt/cni/bin/"|' /etc/containerd/config.toml
+
+
+sudo systemctl restart containerd.service
+sudo systemctl restart kubelet.service
