@@ -12,7 +12,9 @@ sudo ./init_cluster.sh
 sudo ./install_helm.sh
 ```
 
-### 3) Redis cluster setup
+### 3) Join worker nodes
+
+### 4) Redis cluster setup
 On control node:
 ```sh
 # Install
@@ -23,7 +25,7 @@ kubectl exec -it redis-cluster-leader-0 -n ot-operators -- redis-cli -c -a <REDI
 ```
 
 
-### 4) Deploy app
+### 5) Deploy app
 On control node:
 ```sh
 kubectl apply -f ./proxy/config.yaml
